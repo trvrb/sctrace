@@ -144,7 +144,6 @@ void draw() {
 	if (STATISTICS) { stats(); }
 	if (HELP) { help(); }
 	if (FRATE) { showFrameRate(); }
-	blendingDisplay();
 }
 
 void help() {
@@ -160,8 +159,7 @@ void help() {
 	text("S",10,h); text("-  show/hide statistics and frame rate",70,h); h += mod;
 	text("SPACE",10,h); text("-  start/stop animation",70,h); h += mod;
 	text("D",10,h); text("-  start/stop population dynamics",70,h); h += mod;
-	text("M",10,h); text("-  start/stop migration",70,h); h += mod;
-	text("B",10,h); text("-  start/stop blending",70,h); h += mod;		
+	text("M",10,h); text("-  start/stop migration",70,h); h += mod;	
 	text("T",10,h); text("-  show/hide tracing",70,h); h += mod;	
 	text("LEFT",10,h); text("-  decrease speed",70,h); h += mod;
 	text("RIGHT",10,h); text("-  increase speed",70,h); h += mod;
@@ -200,7 +198,7 @@ void blendingDisplay() {
 	smooth();
 	textFont(fontN, 12);
 	if (BLENDING) {
-//		text("blending on", width-75, 18);
+		text("blending on", width-75, 18);
 	}
 	else {
 		text("blending off", width-75, 18);
@@ -223,14 +221,6 @@ void keyPressed() {
 			loop();
 		}
   	} 
-  	if (key == 'b') {
-		if (BLENDING) { 
-			BLENDING = false; 
-		}
-		else if (!BLENDING) { 
-			BLENDING = true; 	
-		}
-  	}
   	if (key == 'm') {
 		if (MIGRATION) { MIGRATION = false; }
 		else if (!MIGRATION) { MIGRATION = true; }
