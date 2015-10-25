@@ -46,7 +46,7 @@ float BG;
 float OUTLINE;
 float MULT;
 float BLENDINGCOL;
-float CARRYING_CAPICITY;
+float POPRADIUS;
 
 boolean TWODIMEN;
 int TRACEDEPTH;
@@ -62,7 +62,6 @@ float[][] M;	// migration matrix
 
 Landscape landscape;
 PFont fontN;
-PFont fontI;
 
 void setup() {
 
@@ -87,7 +86,7 @@ void setup() {
 
 	CHARGE = 10; // 30
 	MAXVEL = 5.0; // 3.0 // 1800.0
-	MAXRAD = 3.5; // 6
+	MAXRAD = 4.5; // 6
 	BASELINE = 25;
 	WALLMULTIPLIER = 20;
 	PMULTIPLIER = 10; // 10 // 30
@@ -95,9 +94,9 @@ void setup() {
 	BG = 20;
 	OUTLINE = 100;
 	BLENDINGCOL = 150;
-	TIMEOFYEAR = 0;	// on 0 to 1
+	POPRADIUS = 200;
 	
-	TRACEDEPTH = 34; // 300
+	TRACEDEPTH = 42; // 300
 	TRACESTEP = 25; // 20
 	PUSHBACK = 0.85;	
 	
@@ -106,20 +105,19 @@ void setup() {
 	
 	MULT = 6.0; // 8.0 // 30.0
 	GEN = (5.0*MULT) / 365.0;				// years per generation
-	CARRYING_CAPICITY = 0.6;
 	
 	D = 2;
 	N = new int[D];
-	N[0] = int(100 / MULT);
-	N[1] = int(100 / MULT);
+	N[0] = int(80 / MULT);
+	N[1] = int(80 / MULT);
 	
 	H = new float[D];
-	H[0] = 0;
-	H[1] = 70;
+	H[0] = 55;
+	H[1] = 11;
 	
 	XLOC = new float[D];
-	XLOC[0] = 0.25*width;
-	XLOC[1] = 0.75*width;
+	XLOC[0] = 0.3*width;
+	XLOC[1] = 0.7*width;
 	
 	YLOC = new float[D];
 	YLOC[0] = 0.5*height;
@@ -128,8 +126,8 @@ void setup() {
 	M = new float[D][D];
 	
 	M[0][0] = 0.0;
-	M[0][1] = 0.1;
-	M[1][0] = 0.1;
+	M[0][1] = 2.5;
+	M[1][0] = 0.25;
 	M[1][1] = 0;
 	
 	INDHUE = 95;
@@ -146,13 +144,7 @@ void draw() {
 	if (STATISTICS) { stats(); }
 	if (HELP) { help(); }
 	if (FRATE) { showFrameRate(); }
-	if (SHOWTIME && TWODIMEN) { timeOfYear(); }
 	blendingDisplay();
-	setTimeOfYear();
-}
-
-void setTimeOfYear() {
-	TIMEOFYEAR = (frameCount % int(FRAMESPERYEAR)) / width;
 }
 
 void help() {
@@ -170,13 +162,12 @@ void help() {
 	text("D",10,h); text("-  start/stop population dynamics",70,h); h += mod;
 	text("M",10,h); text("-  start/stop migration",70,h); h += mod;
 	text("B",10,h); text("-  start/stop blending",70,h); h += mod;		
-	text("T",10,h); text("-  show/hide tracing",70,h); h += mod;
-	text("2",10,h); text("-  switch between 1 and 2 dimensions",70,h); h += mod;		
+	text("T",10,h); text("-  show/hide tracing",70,h); h += mod;	
 	text("LEFT",10,h); text("-  decrease speed",70,h); h += mod;
 	text("RIGHT",10,h); text("-  increase speed",70,h); h += mod;
 		
 	textFont(fontN, 12);
-	text("Copyright 2009-2012 Trevor Bedford",width-205,height-20);
+	text("Copyright 2009-2015 Trevor Bedford",width-205,height-20);
 	
 }
 
@@ -200,25 +191,6 @@ void stats() {
 	int fps = int(frameRate);
 	text(fps + " frames / sec", 10, 65);
 			
-}
-
-void timeOfYear() {
-	
-	fill(0,0,35);
-	stroke(0,0,35);
-	line(0, height-30, width, height-30);
-	stroke(0,0,OUTLINE);
-	float xval = TIMEOFYEAR * width;
-	line(xval, height-25, xval, height-35);
-	
-	textFont(fontN, 16);
-	fill(0,0,OUTLINE);
-	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-	interval = (float) width / 12.0;
-	for (int i=0; i < months.length(); i++) {
-		text(months[i], i * interval + 10, height-10);
-	}
-	
 }
 
 void blendingDisplay() {
@@ -270,19 +242,6 @@ void keyPressed() {
 			TRACING = true; 
 		}
   	}
-  	if (key == '2') {
-		if (TWODIMEN) { 
-			TWODIMEN = false;
-			CHARGE = CHARGE * 5;
-			GEN = GEN / 1;
-		}
-		else if (!TWODIMEN) { 
-			TWODIMEN = true;
-			CHARGE = CHARGE / 5;			
-			GEN = GEN * 1;
-		}
-  		landscape.reset();		
-  	}   	
   	if (key == 'd') {
 		if (DYNAMICS) { DYNAMICS = false; }
 		else if (!DYNAMICS) { DYNAMICS = true; }
@@ -793,12 +752,10 @@ class Population {
 			float rightWall = width;
 			float topWall = 0;
 			float bottomWall = height;
-			if (TWODIMEN) {
-				leftWall = ploc.x-rad;
-				rightWall = ploc.x+rad;
-				topWall = ploc.y-rad;
-				bottomWall = ploc.y+rad;
-			}
+			leftWall = ploc.x-rad;
+			rightWall = ploc.x+rad;
+			topWall = ploc.y-rad;
+			bottomWall = ploc.y+rad;
 			float ldist = ind.loc.x - leftWall;
 			float tdist = ind.loc.y - topWall;
 			float rdist = rightWall - ind.loc.x;
@@ -807,49 +764,49 @@ class Population {
 			// repel from top wall
 			diff = new PVector(0,1);
 			distance = tdist;
-			diff.mult( PMULTIPLIER*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 			
 			// repel from bottom wall
 			diff = new PVector(0,-1);
 			distance = bdist;
-			diff.mult( PMULTIPLIER*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);				
 			
 			// repel from left wall
 			diff = new PVector(1,0);
 			distance = ldist;
-			diff.mult( PMULTIPLIER*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 	
 			// repel from top-left corner
 			diff = new PVector(1,1);
 			distance = sqrt( sq(tdist) + sq(ldist) );
-			diff.mult( 3*PMULTIPLIER*coulomb(distance) );
+			diff.mult( 3*WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 			
 			// repel from top-right corner
 			diff = new PVector(-1,1);
 			distance = sqrt( sq(tdist) + sq(rdist) );
-			diff.mult( 3*PMULTIPLIER*coulomb(distance) );
+			diff.mult( 3*WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 	
 			// repel from right wall
 			diff = new PVector(-1,0);
 			distance = rdist;
-			diff.mult( PMULTIPLIER*coulomb(distance) );
+			diff.mult( WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 	
 			// repel from bottom-right corner
 			diff = new PVector(-1,-1);
 			distance = sqrt( sq(bdist) + sq(rdist) );
-			diff.mult( 3*PMULTIPLIER*coulomb(distance) );
+			diff.mult( 3*WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 								
 			// repel from bottom-left corner
 			diff = new PVector(1,-1);
 			distance = sqrt( sq(bdist) + sq(ldist) );
-			diff.mult( 3*PMULTIPLIER*coulomb(distance) );
+			diff.mult( 3*WALLMULTIPLIER*coulomb(distance) );
 			push.add(diff);
 										
 			// forces accelerate the individual			
@@ -882,7 +839,7 @@ class Landscape {
     	ls = new ArrayList(); 
 
 		for (int i=0; i<D; i++) {
-			ls.add(new Population(new PVector(XLOC[i],YLOC[i]), 60, H[i], N[i] ));
+			ls.add(new Population(new PVector(XLOC[i],YLOC[i]), POPRADIUS, H[i], N[i] ));
 		}
 
   	}
@@ -1009,7 +966,7 @@ class Landscape {
 				// repel from other Individuals
 				for (int pbIndex = 0; pbIndex < ls.size(); pbIndex++) {
 								
-					if (paIndex == pbIndex || !TWODIMEN) {
+					if (paIndex == pbIndex) {
 				
 						Population populationB = (Population) ls.get(pbIndex);
 					
