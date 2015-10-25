@@ -60,8 +60,6 @@ float[] H;
 float[] XLOC;
 float[] YLOC;
 float[][] M;	// migration matrix
-float[] EPS;	// seasonal forcing magnitude
-float[] PHASE;	// seasonal forcing phase
 
 Landscape landscape;
 PFont fontN;
@@ -75,7 +73,7 @@ void setup() {
 	rectMode(CENTER);
 	smooth();
 
-	TWODIMEN = true;
+	TWODIMEN = false;
 	MIGRATION = true;
 	DYNAMICS = true;
 	STATISTICS = false;
@@ -86,7 +84,7 @@ void setup() {
 	SHOWIND = true;
 	BLENDING = true;
 	SHOWWORLD = true;
-	TRACING = false;
+	TRACING = true;
 
 	CHARGE = 2.5; // 30
 	MAXVEL = 5.0; // 3.0 // 1800.0
@@ -121,24 +119,6 @@ void setup() {
 	N[4] = int(220 / MULT);		// South America: 500 million
 	N[5] = int(220 / MULT);		// Southeast Asia: 500 million
 	N[6] = int(170 / MULT);		// USA: 300 million
-	
-	EPS = new int[D];
-	EPS[0] = 0.0;		// China
-	EPS[1] = 0.5;		// Europe
-	EPS[2] = 0.5;		// Japan
-	EPS[3] = 0.5;		// Oceania
-	EPS[4] = 0.5;		// South America
-	EPS[5] = 0.0;		// Southeast Asia
-	EPS[6] = 0.5;		// USA
-	
-	PHASE = new int[D];
-	PHASE[0] = 0.0;		// China
-	PHASE[1] = 0.0;		// Europe
-	PHASE[2] = 0.0;		// Japan
-	PHASE[3] = 0.5;		// Oceania
-	PHASE[4] = 0.5;		// South America
-	PHASE[5] = 0.0;		// Southeast Asia
-	PHASE[6] = 0.0;		// USA	
 	
 	H = new float[D];
 	H[0] = 0;
@@ -576,10 +556,8 @@ class Population {
   	float hue;
 	float[] em;
 	float baseline;	// avg population size
-	float eps;		// magnitude of seasonal forcing
-	float phase;	// phase of seasonal forcing
   	
-  	Population(PVector l, float r, float hu, int n, float e, float p) {
+  	Population(PVector l, float r, float hu, int n) {
   	
   		if (!TWODIMEN) {
   			n = n * ONEDIMENRATIO;
@@ -600,8 +578,6 @@ class Population {
 		hue = hu;
 		
 		baseline = n;
-		eps = e;
-		phase = p;
 		
   	}  	
 
@@ -721,7 +697,7 @@ class Population {
 	}
 	
 	float targetSize() {
-		float target = baseline * (1 + eps*cos((TIMEOFYEAR+phase)*2*PI));
+		float target = baseline;
 		if (!TWODIMEN) {
 			target = target * ONEDIMENRATIO;
 		}
@@ -996,10 +972,6 @@ class Population {
 		return force;
 	}
 	
-	float forcing() {
-		return (1+eps*cos((TIMEOFYEAR+phase)*2*PI));
-	}	
-	
 }
 
 // The Landscape (a list of Population objects)
@@ -1012,14 +984,14 @@ class Landscape {
     	ls = new ArrayList(); 
 
 		for (int i=0; i<D; i++) {
-			ls.add(new Population(new PVector(XLOC[i],YLOC[i]), 60, H[i], N[i], EPS[i], PHASE[i] ));
+			ls.add(new Population(new PVector(XLOC[i],YLOC[i]), 60, H[i], N[i] ));
 		}
 
   	}
   	  	
 	void reset() {
 		for (int i = 0; i < ls.size(); i++) {
-			Population pop = (Population) ls.get(i);  
+			Population pop = (Population) ls.get(i); 
 			pop.reset();  	   
 		}
 	}
