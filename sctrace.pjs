@@ -112,9 +112,9 @@ void setup() {
 	N[1] = int(80 / MULT);
 	
 	H = new float[D];
-	H[0] = 55;
-	H[1] = 11;
-	
+	H[0] = 11;
+	H[1] = 55;
+
 	XLOC = new float[D];
 	XLOC[0] = 0.25*width;
 	XLOC[1] = 0.75*width;
